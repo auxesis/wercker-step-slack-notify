@@ -1,5 +1,5 @@
 name: slack-notify-via-webhook
-version: 0.1.1
+version: 0.1.2
 description: Sends notifications to Slack
 keywords:
   - notification
