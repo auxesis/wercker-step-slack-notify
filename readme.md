@@ -4,51 +4,52 @@
 
 Send a message to a [Slack Channel](https://slack.com/).
 
-### required
+## Setup
 
-* `token` - Your Slack token.
-* `channel` - The channel name of the Slack Channel (without the #).
-* `subdomain` - The slack subdomain.
+For this integration to work, you must create a webhook integration on Slack:
 
-You can create a slack token by going to the account page on your slack domain:
-`<your-subdomain>.slack.com/services` and click 'add New Integration' and select
-'incoming webhooks'. Copy your token (as can be found in the example curl
-command) and don't forget to click 'Add Integration'.
+1. Go to the account page on your Slack domain e.g. `<your-subdomain>.slack.com/services`.
+1. Add an 'Incoming WebHooks' integration.
+1. Select a default channel.
+1. Copy the Webhook URL.
 
-This token can be used directly in the wercker.yml (not
-recommended) or better: as an environment variable. You can add environment
-variables to wercker, by going to the settings tab of your application.
-In the `pipeline` section you can add environment variables. You can use
-those environment variables in the [wercker.yml](http://devcenter.wercker.com/articles/werckeryml/)
-just as you would normally in a shell script (with a dollar sign in front of it).
+Now add a variable in your Wercker application:
 
-### optional
+1. Go to the settings tab of your application.
+1. Go to the pipeline section.
+1. Add a text variable named `SLACK_WEBHOOK_URL`
+1. Set the value of the variable to the Webhook URL you copied from Slack
 
-* `username` - The bot username.
-* `icon_url` | `icon_emoji` - The icon to use for this bot.
+Finally, you need to add after steps to your `wercker.yml`:
+
+``` yaml
+build:
+    after-steps:
+        - auxesis/slack-notify:
+            webhook_url: $SLACK_WEBHOOK_URL
+            channel: "#general"
+```
+
+## Parameters
+
+### Required
+
+* `webhook_url` - The Webhook URL you have configured in Slack.
+* `channel` - The channel name of the Slack Channel (with the `#`).
+
+### Optional
+
+* `username` - The bot username in Slack.
+* `icon_url` - The icon to use for this bot's avatar in Slack.
+* `icon_emoji` - The emoji to use use for this bot's avatar is Slack.
 * `passed_message` - The message which will be shown on a passed build or deploy.
 * `failed_message` - The message which will be shown on a failed build or deploy.
-
-Example
---------
-
-Add `SLACK_TOKEN` as deploy target or application environment variable.
-
-
-    build:
-        after-steps:
-            - sherzberg/slack-notify:
-                subdomain: slacksubdomain
-                token: $SLACK_TOKEN
-                channel: "#general"
-                username: wercker
-                icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 
 # License
 
 The MIT License (MIT)
 
-Copyright (c) 2013 wercker
+Copyright (c) 2015 Lindsay Holmwood
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -68,6 +69,12 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Changelog
+
+## 0.1.0
+- Make construction of JSON a little more elegant and flexible.
+- Add a bucketload of comments to explain wtf is going on.
+- Add basic debugging output for local testing, triggered by setting `WERCKER_SLACK_NOTIFY_DEBUG`.
+- Make README easier to follow. Update instructions for latest Slack.
 
 ## 0.0.11
 - added custom passed/failed message
