@@ -4,7 +4,7 @@
 
 Send a message to a [Slack](https://slack.com/) Channel.
 
-This integration is written in pure shell, and should run on every wercker box.
+**This integration is written in pure shell, and should run on every wercker box.**
 
 It uses the updated Slack WebHooks that use a private URL,
 (e.g. `https://hooks.slack.com/services/R123YR45B/B678ZTJAY/AERfldaT9X`)
