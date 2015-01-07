@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Argument checking
-if [ -z "$WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL" ]; then
+if [ -z "$WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL" ]; then
   fail "Please specify WEBHOOK_URL"
   exit 1
 fi
@@ -69,11 +69,11 @@ payload="$payload }" # Close the JSON document
 debug $payload
 
 RESPONSE_OUTPUT="$WERCKER_STEP_TEMP/body.log"
-RESPONSE_CODE=$(curl -s -X POST --data-urlencode "$payload" $WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL --output $RESPONSE_OUTPUT -w "%{http_code}")
+RESPONSE_CODE=$(curl -s -X POST --data-urlencode "$payload" $WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL --output $RESPONSE_OUTPUT -w "%{http_code}")
 RETVAL=$?
 
 if [ "$RESPONSE_CODE" = "000" ]; then
-  fail "Couldn't connect to $WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL"
+  fail "Couldn't connect to $WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL"
 fi
 
 if [ "$RESPONSE_CODE" = "500" ]; then

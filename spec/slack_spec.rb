@@ -24,19 +24,19 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on webhook connect failure' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9900/hello',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9900/hello',
       'WERCKER_RESULT' => 'success',
       'DEPLOY'         => false
     })
 
     runner(environment, fail_on_error=false)
 
-    assert_matching_output("fail: Couldn't connect to #{environment['WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL']}", all_output)
+    assert_matching_output("fail: Couldn't connect to #{environment['WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL']}", all_output)
   end
 
   it 'notifies to #general by default' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
     })
     runner(environment)
@@ -47,7 +47,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on passed build' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
     })
 
@@ -65,7 +65,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on failed build' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
       'WERCKER_RESULT' => 'failed',
     })
 
@@ -83,7 +83,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on passed deploy' do
     environment = defaults.merge(deploy).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_deploy',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_deploy',
       'WERCKER_RESULT' => 'passed',
       'DEPLOY'         => true
     })
@@ -102,7 +102,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on failed deploy' do
     environment = defaults.merge(deploy).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
       'WERCKER_RESULT' => 'failed',
       'DEPLOY'         => true
     })
@@ -121,7 +121,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'supports custom passed messages' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
       'WERCKER_RESULT' => 'passed',
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_PASSED_MESSAGE' => 'fuck yeah!'
     })
@@ -135,7 +135,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'supports custom failed messages' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_failed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/custom_failed',
       'WERCKER_RESULT' => 'failed',
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_FAILED_MESSAGE' => 'fuck no!'
     })
@@ -149,7 +149,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'supports a custom username' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_USERNAME' => 'foobarbaz'
     })
@@ -161,7 +161,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'supports a custom icon url' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_URL' => 'http://i.imgur.com/yIB7VAN.gif'
     })
@@ -173,7 +173,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'supports a custom emoji icon' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_EMOJI' => ':ramen:'
     })
@@ -185,7 +185,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'fails gracefully on slack failures' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/500',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/500',
     })
 
     runner(environment, fail_on_error=false)
@@ -194,7 +194,7 @@ describe 'slack-notify-via-webhook' do
 
   it "fails gracefully when webhook doesn't exist" do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/404',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL' => 'http://localhost:9988/404',
     })
 
     runner(environment, fail_on_error=false)
