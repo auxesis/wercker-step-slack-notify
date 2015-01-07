@@ -66,7 +66,9 @@ payload="$payload \"text\":\"$message\""
 payload="$payload }" # Close the JSON document
 
 # Make the request
-debug $payload
+if [ -n "$WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_DEBUG" ]; then
+  debug $payload
+fi
 
 RESPONSE_OUTPUT="$WERCKER_STEP_TEMP/body.log"
 RESPONSE_CODE=$(curl -s -X POST --data-urlencode "$payload" $WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_WEBHOOK_URL --output $RESPONSE_OUTPUT -w "%{http_code}")
@@ -84,6 +86,12 @@ if [ "$RESPONSE_CODE" = "404" ]; then
   fail "Webhook doesn't exist"
 fi
 
-debug "HTTP status: $RESPONSE_CODE"
-debug "HTTP response body:"
-debug $(cat $RESPONSE_OUTPUT)
+if [ -n "$WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_DEBUG" ]; then
+  debug "HTTP status: $RESPONSE_CODE"
+  debug "HTTP response body:"
+  debug $(cat $RESPONSE_OUTPUT)
+fi
+
+if [ "$RESPONSE_CODE" = "404" ]; then
+  success "Slack notification successful"
+fi
