@@ -12,12 +12,11 @@ describe 'slack-notify-via-webhook' do
   } }
 
   let(:deploy) { {
+    "WERCKER_DEPLOY_URL"              => "https://app.wercker.com/#deploy/c0ffeefacade",
     "WERCKER_DEPLOYTARGET_NAME"      => "production"
   } }
 
   it 'validates webhook url is set' do
-    environment = defaults
-
     runner(defaults, fail_on_error=false)
 
     assert_matching_output("fail: Please specify WEBHOOK_URL", all_output)
@@ -35,44 +34,89 @@ describe 'slack-notify-via-webhook' do
     assert_matching_output("fail: Couldn't connect to #{environment['WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL']}", all_output)
   end
 
-  it 'notifies on build success' do
+  it 'notifies to #general by default' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
       'WERCKER_RESULT' => 'passed',
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_PASSED_MESSAGE' => 'fuck yeah!'
+    })
+    runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['channel']).to eq "#general"
+  end
+
+  it 'notifies on passed build' do
+    environment = defaults.merge(build).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_RESULT' => 'passed',
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_OWNER_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_GIT_BRANCH"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_STARTED_BY"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_RESULT"])
+    expect(last_slack_request['text']).to include("<" + environment["WERCKER_BUILD_URL"] + "|build>")
   end
 
-  it 'notifies on build failure' do
+  it 'notifies on failed build' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
       'WERCKER_RESULT' => 'failed',
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_PASSED_MESSAGE' => 'fuck yeah!'
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_OWNER_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_GIT_BRANCH"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_STARTED_BY"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_RESULT"])
+    expect(last_slack_request['text']).to include("<" + environment["WERCKER_BUILD_URL"] + "|build>")
   end
 
-  it 'notifies on deploy success' do
-    environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
+  it 'notifies on passed deploy' do
+    environment = defaults.merge(deploy).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_deploy',
       'WERCKER_RESULT' => 'passed',
       'DEPLOY'         => true
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_OWNER_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_GIT_BRANCH"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_STARTED_BY"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_RESULT"])
+    expect(last_slack_request['text']).to include("<" + environment["WERCKER_DEPLOY_URL"] + "|deploy>")
   end
 
-  it 'notifies on deploy failure' do
-    environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/custom_passed',
+  it 'notifies on failed deploy' do
+    environment = defaults.merge(deploy).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/failed_build',
       'WERCKER_RESULT' => 'failed',
       'DEPLOY'         => true
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_OWNER_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_APPLICATION_NAME"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_GIT_BRANCH"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_STARTED_BY"])
+    expect(last_slack_request['text']).to include(environment["WERCKER_RESULT"])
+    expect(last_slack_request['text']).to include("<" + environment["WERCKER_DEPLOY_URL"] + "|deploy>")
   end
 
   it 'supports custom passed messages' do
@@ -83,6 +127,10 @@ describe 'slack-notify-via-webhook' do
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to eq environment["WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_PASSED_MESSAGE"]
   end
 
   it 'supports custom failed messages' do
@@ -93,6 +141,46 @@ describe 'slack-notify-via-webhook' do
     })
 
     runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['text']).to_not be nil
+    expect(last_slack_request['text']).to eq environment["WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_FAILED_MESSAGE"]
+  end
+
+  it 'supports a custom username' do
+    environment = defaults.merge(build).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_RESULT' => 'passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_USERNAME' => 'foobarbaz'
+    })
+    runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['username']).to eq "foobarbaz"
+  end
+
+  it 'supports a custom icon url' do
+    environment = defaults.merge(build).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_RESULT' => 'passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_URL' => 'http://i.imgur.com/yIB7VAN.gif'
+    })
+    runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['icon_url']).to eq environment['WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_URL']
+  end
+
+  it 'supports a custom emoji icon' do
+    environment = defaults.merge(build).merge({
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/passed_build',
+      'WERCKER_RESULT' => 'passed',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_EMOJI' => ':ramen:'
+    })
+    runner(environment)
+
+    expect(last_slack_request).to_not be nil
+    expect(last_slack_request['icon_emoji']).to eq environment['WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_ICON_EMOJI']
   end
 
   it 'fails gracefully on slack failures' do
@@ -125,4 +213,8 @@ def runner(environment, fail_on_error=true)
   FileUtils.cp('run.sh', current_dir)
 
   run_simple "#{current_dir}/runner.sh", fail_on_error
+end
+
+def last_slack_request
+  $SLACK_REQUEST_QUEUE.last
 end

@@ -1,8 +1,9 @@
 source 'https://rubygems.org'
 
-group :development do
+group :test do
   gem 'rake'
   gem 'rspec'
   gem 'aruba'
   gem 'pry'
+  gem 'sinatra'
 end
