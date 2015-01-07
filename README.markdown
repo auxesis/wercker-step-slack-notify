@@ -50,6 +50,21 @@ build:
 * `passed_message` - The message which will be shown on a passed build or deploy.
 * `failed_message` - The message which will be shown on a failed build or deploy.
 
+## Testing
+
+There are full integration tests for this wercker step, written in Ruby.
+
+To run them:
+
+``` bash
+git clone https://github.com/auxesis/wercker-step-slack-notify.git
+cd wercker-step-slack-notify
+bundle
+rake
+```
+
+The tests run up a mock Slack API that the step talks to.
+
 # License
 
 The MIT License (MIT)
