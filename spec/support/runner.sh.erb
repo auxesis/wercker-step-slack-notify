@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Mock out wercker's output functions, per http://devcenter.wercker.com/articles/steps/guide.html#toc_5
+function success() {
+  echo "success: $@"
+}
+
+function fail() {
+  echo "fail: $@"
+  exit 1
+}
+
+function warn() {
+  echo "warn: $@"
+}
+
+function info() {
+  echo "info: $@"
+}
+
+function debug() {
+  echo "debug: $@"
+}
+
+# Boilerplate
+export WERCKER_STEP_TEMP=$(mktemp -d)
+
+# Interpolated variables from test
+<% environment.each_pair do |key, value| -%>
+export <%= key %>="<%= value %>"
+<% end -%>
+
+source ./run.sh
