@@ -25,7 +25,7 @@ describe 'slack-notify-via-webhook' do
 
   it 'notifies on webhook connect failure' do
     environment = defaults.merge(build).merge({
-      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/hello',
+      'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9900/hello',
       'WERCKER_RESULT' => 'success',
       'DEPLOY'         => false
     })
@@ -100,7 +100,8 @@ describe 'slack-notify-via-webhook' do
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/500',
     })
 
-    runner(environment, fail_on_error=true)
+    runner(environment, fail_on_error=false)
+    assert_matching_output("fail: a random error", all_output)
   end
 
   it "fails gracefully when webhook doesn't exist" do
@@ -108,7 +109,7 @@ describe 'slack-notify-via-webhook' do
       'WERCKER_SLACK_NOTIFY_VIA_WEBHOOK_URL' => 'http://localhost:9988/404',
     })
 
-    runner(environment, fail_on_error=true)
+    runner(environment, fail_on_error=false)
     assert_matching_output("fail: Webhook doesn't exist", all_output)
   end
 end
