@@ -2,7 +2,7 @@
 
 # Argument checking
 if [ -z "$WERCKER_SLACK_NOTIFY_WEBHOOK_URL" ]; then
-  fatal "Please specify WEBHOOK_URL"
+  fail "Please specify WEBHOOK_URL"
   exit 1
 fi
 
@@ -66,25 +66,20 @@ payload="$payload \"text\":\"$message\""
 payload="$payload }" # Close the JSON document
 
 # Make the request
-if [ -n "$WERCKER_SLACK_NOTIFY_DEBUG" ]; then
-  echo $payload
-fi
+debug $payload
 
 RESPONSE_OUTPUT="$WERCKER_STEP_TEMP/body.log"
 RESPONSE_CODE=$(curl -s -X POST --data-urlencode "$payload" $WERCKER_SLACK_NOTIFY_WEBHOOK_URL --output $RESPONSE_OUTPUT -w "%{http_code}")
 RETVAL=$?
 
 if [ "$RESPONSE_CODE" = "500" ]; then
-  fatal "$(cat $RESPONSE_OUTPUT)"
+  fail "$(cat $RESPONSE_OUTPUT)"
 fi
 
 if [ "$RESPONSE_CODE" = "404" ]; then
-  fatal "Webhook doesn't exist"
+  fail "Webhook doesn't exist"
 fi
 
-if [ -n "$WERCKER_SLACK_NOTIFY_DEBUG" ]; then
-  echo "HTTP status: $RESPONSE_CODE"
-  echo -n "HTTP response body:"
-  cat $RESPONSE_OUTPUT
-  echo
-fi
+debug "HTTP status: $RESPONSE_CODE"
+debug "HTTP response body:"
+debug $(cat $RESPONSE_OUTPUT)
