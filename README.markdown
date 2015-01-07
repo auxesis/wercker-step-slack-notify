@@ -1,8 +1,13 @@
 [![wercker status](https://app.wercker.com/status/6077bdbf04300a6412268672fa39e71b/m "wercker status")](https://app.wercker.com/project/bykey/6077bdbf04300a6412268672fa39e71b)
 
-# slack-notify
+# slack-notify-via-webhook
 
-Send a message to a [Slack Channel](https://slack.com/).
+Send a message to a [Slack](https://slack.com/) Channel.
+
+This integration is written in pure shell, and should run on every wercker box.
+
+It uses the updated Slack WebHooks that use a private URL,
+(e.g. `https://hooks.slack.com/services/R123YR45B/B678ZTJAY/AERfldaT9X`)
 
 ## Setup
 
