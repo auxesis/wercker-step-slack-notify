@@ -1,94 +1,90 @@
 #!/bin/bash
 
-USERNAME="\"username\":\"Wercker\","
-AVATAR="\"icon_url\":\"https://avatars3.githubusercontent.com/u/1695193?s=140\","
-
-if [ ! -n "$WERCKER_SLACK_NOTIFY_SUBDOMAIN" ]; then
-# fatal causes the wercker interface to display the error without the need to
-# expand the step
-  error 'Please specify the subdomain property'
+# Argument checking
+if [ -z "$WERCKER_SLACK_NOTIFY_WEBHOOK_URL" ]; then
+  fatal "Please specify WEBHOOK_URL"
   exit 1
 fi
 
-if [ ! -n "$WERCKER_SLACK_NOTIFY_TOKEN" ]; then
-  error 'Please specify token property'
-  exit 1
-fi
+# Payload generation
+payload="payload={"
 
-if [ ! -n "$WERCKER_SLACK_NOTIFY_CHANNEL" ]; then
-  error 'Please specify a channel'
-  exit 1
-fi
-
-if [ -n "$WERCKER_SLACK_NOTIFY_USERNAME" ]; then
-  USERNAME="\"username\":\"$WERCKER_SLACK_NOTIFY_USERNAME\","
-fi
-
-if [ -n "$WERCKER_SLACK_NOTIFY_ICON_EMOJI" ]; then
-  AVATAR="\"icon_emoji\":\"$WERCKER_SLACK_NOTIFY_ICON_EMOJI\","
-fi
-if [ -n "$WERCKER_SLACK_NOTIFY_ICON_URL" ]; then
-  AVATAR="\"icon_url\":\"$WERCKER_SLACK_NOTIFY_ICON_URL\","
-fi
-
-
-
-if [ ! -n "$WERCKER_SLACK_NOTIFY_FAILED_MESSAGE" ]; then
-  if [ ! -n "$DEPLOY" ]; then
-    export WERCKER_SLACK_NOTIFY_FAILED_MESSAGE="$WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH by $WERCKER_STARTED_BY failed."
-  else
-    export WERCKER_SLACK_NOTIFY_FAILED_MESSAGE="$WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH to $WERCKER_DEPLOYTARGET_NAME by $WERCKER_STARTED_BY failed."
-  fi
-fi
-
-if [ ! -n "$WERCKER_SLACK_NOTIFY_PASSED_MESSAGE" ]; then
-  if [ ! -n "$DEPLOY" ]; then
-    export WERCKER_SLACK_NOTIFY_PASSED_MESSAGE="$WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH by $WERCKER_STARTED_BY passed."
-  else
-    export WERCKER_SLACK_NOTIFY_PASSED_MESSAGE="$WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_DEPLOY_URL|deploy of $WERCKER_GIT_BRANCH> to $WERCKER_DEPLOYTARGET_NAME by $WERCKER_STARTED_BY passed."
-  fi
-fi
-
-if [ "$WERCKER_RESULT" = "passed" ]; then
-  export WERCKER_SLACK_NOTIFY_MESSAGE="$WERCKER_SLACK_NOTIFY_PASSED_MESSAGE"
+# Channel
+if [ -n "$WERCKER_SLACK_NOTIFY_CHANNEL" ]; then
+  payload="$payload \"channel\":\"$WERCKER_SLACK_NOTIFY_CHANNEL\","
 else
-  export WERCKER_SLACK_NOTIFY_MESSAGE="$WERCKER_SLACK_NOTIFY_FAILED_MESSAGE"
+  payload="$payload \"channel\": \"#general\","
 fi
 
-
-if [ "$WERCKER_SLACK_NOTIFY_ON" = "failed" ]; then
-  if [ "$WERCKER_RESULT" = "passed" ]; then
-    echo "Skipping.."
-    return 0
-  fi
+# Username
+if [ -n "$WERCKER_SLACK_NOTIFY_USERNAME" ]; then
+  payload="$payload \"username\":\"$WERCKER_SLACK_NOTIFY_USERNAME\","
+else
+  payload="$payload \"username\": \"Wercker\","
 fi
 
-json="{\"channel\": \"$WERCKER_SLACK_NOTIFY_CHANNEL\", $USERNAME $AVATAR \"text\": \"$WERCKER_SLACK_NOTIFY_MESSAGE\"}"
-
-RESULT=`curl -s -d "payload=$json" "https://$WERCKER_SLACK_NOTIFY_SUBDOMAIN.slack.com/services/hooks/incoming-webhook?token=$WERCKER_SLACK_NOTIFY_TOKEN" --output $WERCKER_STEP_TEMP/result.txt -w "%{http_code}"`
-
-if [ "$RESULT" = "500" ]; then
-  if grep -Fqx "No token" $WERCKER_STEP_TEMP/result.txt; then
-    fatal "No token is specified."
-  fi
-
-  if grep -Fqx "No hooks" $WERCKER_STEP_TEMP/result.txt; then
-    fatal "No hook can be found for specified subdomain/token"
-  fi
-
-  if grep -Fqx "Invalid channel specified" $WERCKER_STEP_TEMP/result.txt; then
-    fatal "Could not find specified channel for subdomain/token."
-  fi
-
-  if grep -Fqx "No text specified" $WERCKER_STEP_TEMP/result.txt; then
-    fatal "No text specified."
-  fi
-
-  # Unhandled error
-  # fatal <$WERCKER_STEP_TEMP/result.txt
+# Icon
+if [ -n "$WERCKER_SLACK_NOTIFY_ICON_URL" ]; then
+  payload="$payload \"icon_url\":\"$WERCKER_SLACK_NOTIFY_ICON_URL\","
+elif [ -n "$WERCKER_SLACK_NOTIFY_ICON_EMOJI" ]; then
+  payload="$payload \"icon_emoji\":\"$WERCKER_SLACK_NOTIFY_ICON_EMOJI\","
+else
+  payload="$payload \"icon_url\": \"https://avatars3.githubusercontent.com/u/1695193?s=140\","
 fi
 
-if [ "$RESULT" = "404" ]; then
-  error "Subdomain or token not found."
-  exit 1
+# Message
+
+# Build up all the possible messages we can send to Slack
+if [ -n "$WERCKER_SLACK_NOTIFY_PASSED_MESSAGE" ]; then
+  export BUILD_PASSED_MESSAGE=$WERCKER_SLACK_NOTIFY_PASSED_MESSAGE
+  export DEPLOY_PASSED_MESSAGE=$WERCKER_SLACK_NOTIFY_PASSED_MESSAGE
+else
+  export BUILD_PASSED_MESSAGE=":white_check_mark: $WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH by $WERCKER_STARTED_BY passed."
+  export DEPLOY_PASSED_MESSAGE=":white_check_mark: $WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_DEPLOY_URL|deploy of $WERCKER_GIT_BRANCH> to $WERCKER_DEPLOYTARGET_NAME by $WERCKER_STARTED_BY passed."
+fi
+
+if [ -n "$WERCKER_SLACK_NOTIFY_FAILED_MESSAGE" ]; then
+  export BUILD_FAILED_MESSAGE=$WERCKER_SLACK_NOTIFY_FAILED_MESSAGE
+  export DEPLOY_FAILED_MESSAGE=$WERCKER_SLACK_NOTIFY_FAILED_MESSAGE
+else
+  export BUILD_FAILED_MESSAGE=":no_entry: $WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH by $WERCKER_STARTED_BY failed."
+  export DEPLOY_FAILED_MESSAGE=":no_entry: $WERCKER_APPLICATION_OWNER_NAME/$WERCKER_APPLICATION_NAME: <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH to $WERCKER_DEPLOYTARGET_NAME by $WERCKER_STARTED_BY failed."
+fi
+
+# Determine the message we need
+case "$DEPLOY" in
+true)  TYPE=DEPLOY ;;
+false) TYPE=BUILD ;;
+esac
+
+RESULT=$(echo $WERCKER_RESULT | tr a-z A-Z)
+message_type="${TYPE}_${RESULT}_MESSAGE"
+message="$(echo ${!message_type})"
+
+# Add the message to the payload
+payload="$payload \"text\":\"$message\""
+payload="$payload }" # Close the JSON document
+
+# Make the request
+if [ -n "$WERCKER_SLACK_NOTIFY_DEBUG" ]; then
+  echo $payload
+fi
+
+RESPONSE_OUTPUT="$WERCKER_STEP_TEMP/body.log"
+RESPONSE_CODE=$(curl -s -X POST --data-urlencode "$payload" $WERCKER_SLACK_NOTIFY_WEBHOOK_URL --output $RESPONSE_OUTPUT -w "%{http_code}")
+RETVAL=$?
+
+if [ "$RESPONSE_CODE" = "500" ]; then
+  fatal "$(cat $RESPONSE_OUTPUT)"
+fi
+
+if [ "$RESPONSE_CODE" = "404" ]; then
+  fatal "Webhook doesn't exist"
+fi
+
+if [ -n "$WERCKER_SLACK_NOTIFY_DEBUG" ]; then
+  echo "HTTP status: $RESPONSE_CODE"
+  echo -n "HTTP response body:"
+  cat $RESPONSE_OUTPUT
+  echo
 fi

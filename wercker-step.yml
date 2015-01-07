@@ -1,14 +1,11 @@
 name: slack-notify
-version: 0.0.11
+version: 0.1.0
 description: Sends notifications to Slack
 keywords:
   - notification
   - slack
 properties:
-  subdomain:
-    type: string
-    required: true
-  token:
+  webhook_url:
     type: string
     required: true
   channel:
