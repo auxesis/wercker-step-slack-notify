@@ -75,6 +75,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Changelog
 
+## 0.1.1
+- Bugfixes.
+
 ## 0.1.0
 - Make construction of JSON a little more elegant and flexible.
 - Add a bucketload of comments to explain wtf is going on.
