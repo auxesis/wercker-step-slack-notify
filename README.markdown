@@ -30,7 +30,7 @@ Finally, you need to add after steps to your `wercker.yml`:
 ``` yaml
 build:
     after-steps:
-        - auxesis/slack-notify:
+        - auxesis/slack-notify-via-webhook:
             webhook_url: $SLACK_WEBHOOK_URL
             channel: "#general"
 ```
@@ -49,6 +49,20 @@ build:
 * `icon_emoji` - The emoji to use use for this bot's avatar is Slack.
 * `passed_message` - The message which will be shown on a passed build or deploy.
 * `failed_message` - The message which will be shown on a failed build or deploy.
+
+Here's an example of the parameters in action:
+
+``` yaml
+build:
+    after-steps:
+        - auxesis/slack-notify-via-webhook:
+            webhook_url: $SLACK_WEBHOOK_URL
+            channel: "#logger"
+            username: "Slacky McSlackerson"
+            icon_emoji: ":poop:"
+            passed_message: ":thumbsup: very nice"
+            failed_message: ":shit: is on fire, yo"
+```
 
 ## Testing
 
